@@ -44,6 +44,8 @@ The Swarm Controller orchestrates the entire process:
 - Python 3.8+
 - OpenAI API key
 - SEC API key (for financial filings data)
+- Fin Data API key (for financial data)
+- FRED API key (for macroeconomic data)
 - Access to relevant financial data APIs
 
 ### Environment Setup
@@ -102,26 +104,26 @@ Example cron setup for weekly reports (Sundays at 6 PM):
 
 ## Implementation Timeline
 
-### Week 1 (April 23-30, 2025)
+### Step 1
 - Set up project repository and environment
 - Implement Equities Agent and Macro Agent
 - Create basic data fetching mechanisms
 - Establish prompt templates
 
-### Week 2 (May 1-7, 2025)
+### Step 2
 - Implement Fixed Income and Commodities Agents
 - Develop the Aggregator Agent
 - Build the Swarm Controller for basic orchestration
 - Implement initial error handling
 
-### Week 3 (May 8-14, 2025)
+### Step 3
 - Enhance prompts and response quality
 - Implement robust error handling and retries
 - Add monitoring and logging
 - Create deployment scripts
 - Finalize documentation
 
-### Week 4 (May 15-21, 2025)
+### Step 4
 - Testing and quality assurance
 - Performance optimization
 - User feedback integration
@@ -131,12 +133,7 @@ Example cron setup for weekly reports (Sundays at 6 PM):
 
 | Team Member | Responsibility |
 |-------------|----------------|
-| Alice | Equities Agent: Stock market analysis using Yahoo Finance API |
-| Bob | Fixed Income Agent: Bond market and yield curve analysis |
-| Carol | Macro Agent: Economic indicators analysis (GDP, CPI, employment) |
-| David | Commodities Agent: Commodity price trends and market drivers |
-| Eve | Aggregator Agent: Synthesis of domain insights into cohesive summary |
-| Frank | Swarm Controller: Orchestration, scheduling, and report delivery |
+| [Your Name] | [Your Role] |
 
 ## Error Handling
 
