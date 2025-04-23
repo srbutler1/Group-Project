@@ -2,9 +2,11 @@
 
 ## Overview
 
-The Economic Summary Swarm Agent System is an AI-powered platform that generates comprehensive economic analyses by leveraging multiple specialized domain agents. Each agent focuses on a specific economic sector, analyzes relevant data, and contributes domain-specific insights. These insights are then aggregated to produce a holistic economic summary.
+The Economic Summary Swarm Agent System is an AI-powered platform that generates comprehensive economic analyses by leveraging the [Swarms](https://docs.swarms.world/en/latest/) framework with a [Mixture of Agents (MoA)](https://docs.swarms.world/en/latest/swarms/structs/moa/) architecture. Each specialized agent focuses on a specific economic domain, analyzes relevant data, and contributes domain-specific insights. These insights are then aggregated to produce a holistic economic summary.
 
 ## Project Architecture
+
+The project implements the Mixture of Agents (MoA) architecture from the Swarms framework, which follows a parallel → sequential → parallel → final output agent process as described in [this research paper](https://arxiv.org/pdf/2406.04692).
 
 ### Domain Agents
 
@@ -14,6 +16,7 @@ The system employs specialized agents for different economic domains:
 - **Fixed Income Agent**: Examines bond markets, yield curves, and interest rate trends
 - **Macro Agent**: Evaluates broad economic indicators like GDP, inflation, and employment
 - **Commodities Agent**: Tracks commodity prices, supply/demand dynamics, and market trends
+- **Political News Agent**: Analyzes political news with economic implications
 - **Additional Domain Agents**: Can include FX, Real Estate, Crypto, etc.
 
 Each domain agent:
@@ -23,7 +26,7 @@ Each domain agent:
 
 ### Aggregator Agent
 
-The Aggregator Agent:
+The Aggregator Agent serves as the final_agent in the MoA architecture:
 1. Collects summaries from all domain agents
 2. Synthesizes information into a cohesive economic overview
 3. Applies weighting and prioritization logic to highlight key insights
@@ -31,11 +34,73 @@ The Aggregator Agent:
 
 ### Orchestration Layer
 
-The Swarm Controller orchestrates the entire process:
-1. Initializes and executes domain agents in parallel
-2. Manages error handling and retries
-3. Collects domain summaries and passes them to the Aggregator Agent
-4. Delivers the final report through designated channels (email, Slack, etc.)
+The Swarm Controller orchestrates the entire process using the MoA framework:
+1. Initializes domain agents with appropriate system prompts and configurations
+2. Executes agents in parallel for initial data gathering and analysis
+3. Processes intermediate results sequentially where needed
+4. Runs final parallel processing before aggregation
+5. Delivers the final report through designated channels (email, Slack, etc.)
+
+## Implementation Details
+
+```python
+from swarms import MixtureOfAgents, Agent
+from swarm_models import OpenAIChat
+
+# Define domain-specific agents
+equities_agent = Agent(
+    agent_name="EquitiesAgent",
+    system_prompt="Analyze stock market trends, major indices, and corporate performance",
+    llm=OpenAIChat(),
+    verbose=True
+)
+
+fixed_income_agent = Agent(
+    agent_name="FixedIncomeAgent",
+    system_prompt="Examine bond markets, yield curves, and interest rate trends",
+    llm=OpenAIChat(),
+    verbose=True
+)
+
+macro_agent = Agent(
+    agent_name="MacroAgent",
+    system_prompt="Evaluate GDP, inflation, employment, and other economic indicators",
+    llm=OpenAIChat(),
+    verbose=True
+)
+
+commodities_agent = Agent(
+    agent_name="CommoditiesAgent",
+    system_prompt="Track commodity prices, supply/demand dynamics, and market trends",
+    llm=OpenAIChat(),
+    verbose=True
+)
+
+political_agent = Agent(
+    agent_name="PoliticalAgent",
+    system_prompt="Analyze political news with economic implications",
+    llm=OpenAIChat(),
+    verbose=True
+)
+
+# Define the aggregator agent
+aggregator_agent = Agent(
+    agent_name="AggregatorAgent",
+    system_prompt="Synthesize domain-specific insights into a comprehensive economic summary",
+    llm=OpenAIChat(),
+    verbose=True
+)
+
+# Initialize the MixtureOfAgents
+economic_swarm = MixtureOfAgents(
+    agents=[equities_agent, fixed_income_agent, macro_agent, commodities_agent, political_agent],
+    final_agent=aggregator_agent,
+    verbose=True,
+    auto_save=True
+)
+
+# Run the swarm
+economic_summary = economic_swarm.run(task="Generate a comprehensive economic summary based on current data.")
 
 ## Setup and Installation
 
@@ -65,6 +130,8 @@ The Swarm Controller orchestrates the entire process:
    - Create a `config_api_keys` file in the project root
    - Add your OpenAI API key (must start with 'sk-')
    - Add your SEC API key (obtain from sec-api.io)
+   - Add your Fin Data API key
+   - Add your FRED API key
    - Add any other required API keys for data sources
 
 4. Set up the OpenAI configuration:
@@ -78,16 +145,24 @@ The Swarm Controller orchestrates the entire process:
 To generate a complete economic summary:
 
 ```python
-python run_economic_summary.py
+from economic_summary.main import run_economic_summary
+
+# Generate and save the economic summary
+summary = run_economic_summary()
+print(summary)
 ```
 
 For individual domain analyses:
 
 ```python
-python run_domain_agent.py --domain equities
-python run_domain_agent.py --domain fixed_income
-python run_domain_agent.py --domain macro
-python run_domain_agent.py --domain commodities
+from economic_summary.agents import run_domain_agent
+
+# Run specific domain agent
+equities_summary = run_domain_agent(domain="equities")
+fixed_income_summary = run_domain_agent(domain="fixed_income")
+macro_summary = run_domain_agent(domain="macro")
+commodities_summary = run_domain_agent(domain="commodities")
+political_summary = run_domain_agent(domain="political")
 ```
 
 ### Scheduling
@@ -106,14 +181,16 @@ Example cron setup for weekly reports (Sundays at 6 PM):
 
 ### Step 1
 - Set up project repository and environment
+- Install Swarms framework and dependencies
 - Implement Equities Agent and Macro Agent
 - Create basic data fetching mechanisms
 - Establish prompt templates
 
 ### Step 2
 - Implement Fixed Income and Commodities Agents
-- Develop the Aggregator Agent
-- Build the Swarm Controller for basic orchestration
+- Develop the Political News Agent
+- Build the Aggregator Agent
+- Configure the MixtureOfAgents architecture
 - Implement initial error handling
 
 ### Step 3
@@ -136,16 +213,17 @@ Example cron setup for weekly reports (Sundays at 6 PM):
 | Sam | Aggregator Agent/Macro-FRED Agent |
 | Jake | Commodities Agent |
 | Thomas | Fixed Income (Treasuries, etc.) |
-|Himanshu | Equities Agent |
+| Himanshu | Equities Agent |
 | Zach | Political News Agent - Specific to economic topics |
 
 ## Error Handling
 
-The system implements robust error handling:
+The system implements robust error handling within the Swarms framework:
 - Connection error management for API calls
 - Graceful degradation when data sources are unavailable
 - Fallback mechanisms for API key configuration
 - Comprehensive logging for troubleshooting
+- Reliability checks using the MixtureOfAgents' reliability_check method
 
 ## Data Sources
 
@@ -170,36 +248,47 @@ The system implements robust error handling:
 - Energy Information Administration
 - Agricultural reports
 
+### Political News
+- News APIs with economic filters
+- Government policy announcements
+- Regulatory updates
+
 ## API Reference
 
 ### Domain Agent Interface
 
 ```python
-def run_domain_agent(config: Dict) -> str:
+from swarms import Agent
+
+def create_domain_agent(domain_name: str, system_prompt: str) -> Agent:
     """
-    Execute a domain-specific analysis and return a formatted summary.
+    Create a domain-specific agent with appropriate configuration.
     
     Args:
-        config: Configuration dictionary with API keys and parameters
+        domain_name: Name of the economic domain
+        system_prompt: Specialized prompt for the domain
         
     Returns:
-        Formatted string containing the domain analysis
+        Configured Agent instance for the domain
     """
 ```
 
-### Aggregator Interface
+### MixtureOfAgents Interface
 
 ```python
-def run_aggregator_agent(summaries: Dict[str, str], config: Dict) -> str:
+from swarms import MixtureOfAgents, Agent
+from typing import List, Dict
+
+def create_economic_swarm(domain_agents: List[Agent], aggregator_agent: Agent) -> MixtureOfAgents:
     """
-    Synthesize domain summaries into a comprehensive economic overview.
+    Create a MixtureOfAgents swarm for economic analysis.
     
     Args:
-        summaries: Dictionary mapping domain names to their summaries
-        config: Configuration parameters for the aggregation
+        domain_agents: List of domain-specific agents
+        aggregator_agent: Agent for final aggregation
         
     Returns:
-        Formatted comprehensive economic summary
+        Configured MixtureOfAgents instance
     """
 ```
 
@@ -222,6 +311,11 @@ def run_aggregator_agent(summaries: Dict[str, str], config: Dict) -> str:
    - Check for rate limiting or quota issues
    - Verify prompt formatting is correct
 
+4. **Swarms Framework Issues**
+   - Ensure you're using the latest version of the Swarms library
+   - Check agent initialization parameters
+   - Verify the MixtureOfAgents configuration
+
 ## Contributing
 
 1. Fork the repository
@@ -230,12 +324,21 @@ def run_aggregator_agent(summaries: Dict[str, str], config: Dict) -> str:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Resources
+
+- [Swarms Documentation](https://docs.swarms.world/en/latest/)
+- [Mixture of Agents Architecture](https://docs.swarms.world/en/latest/swarms/structs/moa/)
+- [Research Paper: Mixture of Agents](https://arxiv.org/pdf/2406.04692)
+- [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)
+- [SEC-API Documentation](https://sec-api.io/docs)
+
 ## License
 
 [Specify your license here]
 
 ## Acknowledgments
 
+- Swarms framework for providing the MixtureOfAgents architecture
 - OpenAI for providing the foundation models
 - SEC-API.io for financial filing data access
 - [Other acknowledgments as appropriate]
