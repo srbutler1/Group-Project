@@ -133,7 +133,11 @@ Example cron setup for weekly reports (Sundays at 6 PM):
 
 | Team Member | Responsibility |
 |-------------|----------------|
-| [Your Name] | [Your Role] |
+| Sam | Aggregator Agent/Macro-FRED Agent |
+| Jake | Commodities Agent |
+| Thomas | Fixed Income (Treasuries, etc.) |
+|Himanshu | Equities Agent |
+| Zach | Political News Agent - Specific to economic topics |
 
 ## Error Handling
 
