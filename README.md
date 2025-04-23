@@ -41,6 +41,165 @@ The Swarm Controller orchestrates the entire process using the MoA framework:
 4. Runs final parallel processing before aggregation
 5. Delivers the final report through designated channels (email, Slack, etc.)
 
+## Folder Structure
+
+The project follows the recommended Swarms framework architecture with the following structure:
+
+```
+economic_summary/
+├── __init__.py                  # Package initialization
+├── agents/                      # Domain-specific agents
+│   ├── __init__.py              # Agent module initialization
+│   ├── aggregator/              # Aggregator agent (Sam)
+│   ├── commodities/             # Commodities agent (Jake)
+│   ├── equities/                # Equities agent (Himanshu)
+│   ├── fixed_income/            # Fixed Income agent (Thomas)
+│   ├── macro/                   # Macro agent (Sam)
+│   └── political/               # Political news agent (Zach)
+├── config/                      # Configuration files
+│   └── __init__.py              # Config module initialization
+├── data/                        # Data storage and processing
+│   └── .gitkeep                 # Placeholder for empty directory
+├── models/                      # Model definitions
+│   └── .gitkeep                 # Placeholder for empty directory
+├── tests/                       # Test files
+│   └── .gitkeep                 # Placeholder for empty directory
+└── utils/                       # Utility functions
+    └── .gitkeep                 # Placeholder for empty directory
+```
+
+### Key Components
+
+1. **Agents Directory**: Contains all domain-specific agents and the aggregator agent. Each agent is responsible for a specific economic domain and follows the Swarms Agent architecture.
+
+2. **Config Directory**: Stores configuration files for API keys, model parameters, and other settings.
+
+3. **Data Directory**: Used for data storage, processing, and caching. This includes financial data, news articles, and other information needed by the agents.
+
+4. **Models Directory**: Contains model definitions and custom model implementations if needed.
+
+5. **Utils Directory**: Houses utility functions for data processing, API interactions, and other common tasks.
+
+6. **Tests Directory**: Contains test files for ensuring the reliability of the system.
+
+## Architecture Implementation
+
+The Economic Summary Swarm Agent System implements the Mixture of Agents (MoA) architecture from the Swarms framework. Here's how the components work together:
+
+### 1. Agent Design
+
+Each domain agent follows the Swarms agent architecture:
+
+```
+┌─────────────────────────────────────────┐
+│                 Agent                   │
+├─────────────────────────────────────────┤
+│ 1. Task Initiation                      │
+│    - Receives economic data query       │
+│                                         │
+│ 2. Initial LLM Processing               │
+│    - Interprets task requirements       │
+│    - Plans data collection strategy     │
+│                                         │
+│ 3. Tool Usage                           │
+│    - Calls domain-specific APIs         │
+│    - Retrieves relevant data            │
+│                                         │
+│ 4. Memory Interaction                   │
+│    - Stores/retrieves historical data   │
+│    - Uses RAG for context enhancement   │
+│                                         │
+│ 5. Final LLM Processing                 │
+│    - Analyzes collected data            │
+│    - Generates domain-specific summary  │
+└─────────────────────────────────────────┘
+```
+
+### 2. MoA Workflow
+
+The Mixture of Agents architecture follows a parallel → sequential → parallel → final output process:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  MixtureOfAgents Workflow                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Layer 1: Parallel Agent Execution                              │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐          │
+│  │Equities │   │Fixed    │   │Macro    │   │Commod.  │   ...    │
+│  │Agent    │   │Income   │   │Agent    │   │Agent    │          │
+│  └────┬────┘   └────┬────┘   └────┬────┘   └────┬────┘          │
+│       │             │             │             │               │
+│       └─────────────┼─────────────┼─────────────┘               │
+│                     │             │                             │
+│  Layer 2: Sequential Processing   │                             │
+│                     │             │                             │
+│       ┌─────────────┼─────────────┼─────────────┐               │
+│       │             │             │             │               │
+│  Layer 3: Parallel Agent Execution                              │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐          │
+│  │Equities │   │Fixed    │   │Macro    │   │Commod.  │   ...    │
+│  │Agent    │   │Income   │   │Agent    │   │Agent    │          │
+│  └────┬────┘   └────┬────┘   └────┬────┘   └────┬────┘          │
+│       │             │             │             │               │
+│       └─────────────┼─────────────┼─────────────┘               │
+│                     │                                           │
+│  Final Aggregator Agent                                         │
+│  ┌─────────────────────────────────┐                            │
+│  │Aggregator Agent                 │                            │
+│  │- Synthesizes all domain insights│                            │
+│  │- Produces final economic summary│                            │
+│  └─────────────────────────────────┘                            │
+│                     │                                           │
+│  ┌─────────────────┴─────────────────┐                          │
+│  │         Economic Summary          │                          │
+│  └───────────────────────────────────┘                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 3. Implementation Flow
+
+1. **Initialization**: The system initializes all domain agents with their specific system prompts and configurations.
+
+2. **Layer 1 - Initial Data Collection**: All domain agents run in parallel to collect and analyze data from their respective domains.
+
+3. **Layer 2 - Intermediate Processing**: Sequential processing of initial results to identify interdependencies and cross-domain impacts.
+
+4. **Layer 3 - Refined Analysis**: Domain agents run again in parallel with enhanced context from other domains to refine their analyses.
+
+5. **Final Aggregation**: The Aggregator Agent combines all domain insights into a comprehensive economic summary.
+
+### 4. Agent Communication
+
+Agents communicate through the MixtureOfAgents orchestration:
+
+1. **Conversation History**: Each agent's output is added to a shared conversation history.
+
+2. **Context Preservation**: Important context is preserved between agent runs using the conversation history.
+
+3. **Metadata Tracking**: The system tracks metadata about each agent's run, including timing, inputs, and outputs.
+
+### 5. Data Flow
+
+```
+┌───────────┐     ┌───────────┐     ┌───────────┐
+│           │     │           │     │           │
+│  External │     │  Domain   │     │ Aggregator│
+│   Data    │────▶│  Agents   │────▶│   Agent   │
+│  Sources  │     │           │     │           │
+│           │     │           │     │           │
+└───────────┘     └───────────┘     └───────────┘
+                                          │
+                                          ▼
+                                    ┌───────────┐
+                                    │ Economic  │
+                                    │  Summary  │
+                                    │  Report   │
+                                    └───────────┘
+```
+
+This architecture follows the Swarms framework best practices for building complex multi-agent systems, with a focus on modularity, scalability, and effective agent collaboration.
+
 ## Implementation Details
 
 ```python
