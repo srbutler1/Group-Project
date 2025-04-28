@@ -82,6 +82,19 @@ economic_summary/
 
 6. **Tests Directory**: Contains test files for ensuring the reliability of the system.
 
+## Features
+
+### Macroeconomic Analysis
+- Retrieves and analyzes key economic indicators from FRED
+- Assesses recession risk based on yield curve and other factors
+- Monitors recent economic reports from major sources
+- **NEW: Analyzes important economic reports** - Automatically identifies and analyzes the most important recent economic reports that may impact the economy
+
+### Aggregation and Synthesis
+- Combines insights from all domain agents
+- Identifies connections between different economic domains
+- Prioritizes significant trends and provides a balanced outlook
+
 ## Architecture Implementation
 
 The Economic Summary Swarm Agent System implements the Mixture of Agents (MoA) architecture from the Swarms framework. Here's how the components work together:

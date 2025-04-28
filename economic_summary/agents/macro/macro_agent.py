@@ -4,7 +4,13 @@ Macro Agent for analyzing macroeconomic indicators using FRED data.
 import logging
 import openai
 from swarms import Agent
-from economic_summary.utils import get_openai_api_key, FREDDataManager, get_verbose, get_auto_save
+from economic_summary.utils import (
+    get_openai_api_key, 
+    FREDDataManager, 
+    ReportParser,
+    get_verbose, 
+    get_auto_save
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -17,6 +23,7 @@ class MacroAgent:
     def __init__(self):
         """Initialize the Macro Agent with FRED data manager and LLM."""
         self.fred_manager = FREDDataManager()
+        self.report_parser = ReportParser()
         # Initialize with OpenAI directly as per Swarms 7.7.2
         api_key = get_openai_api_key()
         self.agent = Agent(
@@ -168,6 +175,85 @@ class MacroAgent:
             logger.error(f"Error retrieving recent economic reports: {str(e)}")
             return {"error": str(e)}
     
+    def analyze_important_reports(self, num_reports=3, keywords=None):
+        """
+        Analyze the most important recent economic reports.
+        
+        Args:
+            num_reports: Number of reports to analyze
+            keywords: List of keywords to prioritize reports (default: inflation, gdp, etc.)
+            
+        Returns:
+            dict: Analysis of important reports
+        """
+        try:
+            # Get recent reports from key sources
+            sources = ['fed', 'bea', 'bls']  # Federal Reserve, Bureau of Economic Analysis, Bureau of Labor Statistics
+            all_reports = self.get_recent_economic_reports(sources, limit_per_source=10)
+            
+            # Flatten the reports list
+            flat_reports = []
+            for source, reports in all_reports.items():
+                for report in reports:
+                    report['source'] = source
+                    flat_reports.append(report)
+            
+            # Rank reports by importance
+            ranked_reports = self.report_parser.rank_reports_by_importance(flat_reports, keywords)
+            
+            # Take the top N reports
+            top_reports = ranked_reports[:num_reports]
+            
+            # Analyze each report
+            report_analyses = []
+            for report in top_reports:
+                report_name = report.get('name', 'Unknown Report')
+                report_link = report.get('link', '')
+                report_source = report.get('source', 'Unknown Source')
+                
+                logger.info(f"Analyzing report: {report_name} from {report_source}")
+                
+                # Get report content
+                if report_link:
+                    content = self.report_parser.get_report_content(report_link)
+                    
+                    # Analyze the content with the LLM
+                    analysis_prompt = f"""
+                    Please analyze the following economic report and provide a concise summary of its key findings and implications:
+                    
+                    Report: {report_name}
+                    Source: {report_source.upper()}
+                    
+                    Content:
+                    {content[:3000]}  # Limit content to 3000 chars to avoid token limits
+                    
+                    Provide a brief summary (2-3 paragraphs) that highlights:
+                    1. The main economic indicators or data discussed
+                    2. Key trends or changes identified
+                    3. Potential implications for monetary policy and the broader economy
+                    """
+                    
+                    analysis = self.agent.run(analysis_prompt)
+                    
+                    # Extract the analysis from the response
+                    if isinstance(analysis, dict) and "response" in analysis:
+                        analysis = analysis["response"]
+                    
+                    report_analyses.append({
+                        'name': report_name,
+                        'source': report_source,
+                        'link': report_link,
+                        'analysis': analysis
+                    })
+                
+            return {
+                'count': len(report_analyses),
+                'reports': report_analyses
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing important reports: {str(e)}")
+            return {"error": str(e)}
+    
     def run(self, task=None):
         """
         Run the Macro Agent to analyze economic data and generate insights.
@@ -188,6 +274,17 @@ class MacroAgent:
             # Get recent economic reports
             recent_reports = self.get_recent_economic_reports()
             
+            # Analyze important reports (new feature)
+            important_report_analyses = self.analyze_important_reports(num_reports=3)
+            
+            # Format the important report analyses
+            report_analysis_text = ""
+            if 'reports' in important_report_analyses:
+                report_analysis_text = "\n\nAnalysis of Important Recent Reports:\n"
+                for i, report in enumerate(important_report_analyses['reports']):
+                    report_analysis_text += f"\n--- Report {i+1}: {report.get('name')} ({report.get('source').upper()}) ---\n"
+                    report_analysis_text += f"{report.get('analysis', 'No analysis available')}\n"
+            
             # Format the data for the LLM
             prompt = f"""
             Please analyze the following macroeconomic data and provide insights:
@@ -200,6 +297,7 @@ class MacroAgent:
             
             Recent Economic Reports:
             {recent_reports}
+            {report_analysis_text}
             
             Based on this data, provide a comprehensive analysis of the current macroeconomic situation, 
             key trends, and outlook. Include specific insights about GDP, inflation, employment, 

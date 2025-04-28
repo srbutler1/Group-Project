@@ -63,7 +63,7 @@ class FREDDataManager:
         
         Args:
             series_id: FRED series ID
-            start_date: Start date (default: 5 years ago)
+            start_date: Start date (default: 1 year ago)
             end_date: End date (default: today)
             
         Returns:
@@ -74,12 +74,27 @@ class FREDDataManager:
             return None
         
         if not start_date:
-            start_date = (datetime.now() - timedelta(days=5*365)).strftime('%Y-%m-%d')
+            start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
         if not end_date:
             end_date = datetime.now().strftime('%Y-%m-%d')
             
         try:
-            data = self.fred.get_series(series_id, start_date, end_date)
+            # Add observation_start and observation_end parameters to ensure we get the most recent data
+            data = self.fred.get_series(
+                series_id, 
+                observation_start=start_date, 
+                observation_end=end_date,
+                realtime_start=start_date,
+                realtime_end=end_date
+            )
+            
+            # Log the date range and most recent data point
+            if not data.empty:
+                most_recent_date = data.index.max().strftime('%Y-%m-%d')
+                logger.info(f"Retrieved {series_id} data: most recent date is {most_recent_date}")
+            else:
+                logger.warning(f"No data found for {series_id} in the specified date range")
+                
             return data
         except Exception as e:
             logger.error(f"Error retrieving FRED series {series_id}: {str(e)}")
@@ -211,43 +226,70 @@ class FREDDataManager:
         if not indicators:
             indicators = list(self.indicators.keys())
             
-        data = self.get_multiple_indicators(indicators, start_date, end_date)
-        if data.empty:
-            return {"error": "No data available for the specified indicators"}
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+        if not end_date:
+            end_date = datetime.now().strftime('%Y-%m-%d')
             
         results = {}
         
-        for indicator in data.columns:
-            series = data[indicator].dropna()
-            if len(series) == 0:
-                results[indicator] = {"error": "No data available"}
-                continue
+        for indicator in indicators:
+            try:
+                # Get the indicator data
+                series = self.get_indicator(indicator, start_date, end_date)
                 
-            # Calculate basic statistics
-            current = series.iloc[-1]
-            previous = series.iloc[-2] if len(series) > 1 else None
-            change = (current - previous) / previous if previous else None
-            change_pct = change * 100 if change is not None else None
-            
-            # Calculate trend (simple linear regression)
-            if len(series) >= periods:
-                recent_data = series.iloc[-periods:]
-                trend = recent_data.diff().mean()
-                trend_direction = "up" if trend > 0 else "down" if trend < 0 else "stable"
-            else:
-                trend = None
+                if series is None or len(series) < 2:
+                    logger.warning(f"Insufficient data for indicator {indicator}")
+                    continue
+                    
+                # Get the most recent values
+                current_value = series.iloc[-1]
+                previous_value = series.iloc[-2] if len(series) > 1 else None
+                
+                # Calculate change
+                change = None
+                change_pct = None
+                if previous_value is not None and previous_value != 0:
+                    change = (current_value - previous_value) / previous_value
+                    change_pct = change * 100
+                
+                # Determine trend direction
                 trend_direction = "unknown"
+                if len(series) >= 3:
+                    recent_values = series.iloc[-3:]
+                    if recent_values.is_monotonic_increasing:
+                        trend_direction = "up"
+                    elif recent_values.is_monotonic_decreasing:
+                        trend_direction = "down"
+                    else:
+                        # Check if more ups than downs
+                        diffs = recent_values.diff().dropna()
+                        ups = sum(diffs > 0)
+                        downs = sum(diffs < 0)
+                        if ups > downs:
+                            trend_direction = "up"
+                        elif downs > ups:
+                            trend_direction = "down"
                 
-            results[indicator] = {
-                "current_value": current,
-                "previous_value": previous,
-                "change": change,
-                "change_pct": change_pct,
-                "trend_direction": trend_direction,
-                "data_points": len(series),
-                "last_updated": series.index[-1].strftime('%Y-%m-%d')
-            }
-            
+                # Get the most recent date
+                last_updated = series.index[-1].strftime('%Y-%m-%d')
+                
+                # Store the results
+                results[indicator] = {
+                    'current_value': current_value,
+                    'previous_value': previous_value,
+                    'change': change,
+                    'change_pct': change_pct,
+                    'trend_direction': trend_direction,
+                    'data_points': len(series),
+                    'last_updated': last_updated
+                }
+                
+                logger.info(f"Analyzed indicator {indicator}: current value = {current_value}, last updated = {last_updated}")
+                
+            except Exception as e:
+                logger.error(f"Error analyzing indicator {indicator}: {str(e)}")
+                
         return results
     
     def get_sources(self):
