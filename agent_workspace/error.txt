@@ -1,0 +1,2 @@
+Error running Economic Summary Swarm: MixtureOfAgents.__init__() got an unexpected keyword argument 'final_agent'
+Error running Economic Summary Swarm: MixtureOfAgents.__init__() got an unexpected keyword argument 'model_name'
