@@ -10,3 +10,4 @@ yfinance>=0.2.31
 newsapi-python>=0.2.7
 beautifulsoup4>=4.12.2
 PyPDF2>=3.0.0
+sec-api>=1.0.0

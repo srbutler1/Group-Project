@@ -5,6 +5,8 @@ from economic_summary.utils.config import (
     get_api_key,
     get_openai_api_key,
     get_fred_api_key,
+    get_sec_api_key,
+    get_news_api_key,
     get_verbose,
     get_auto_save
 )
@@ -15,6 +17,8 @@ __all__ = [
     'get_api_key',
     'get_openai_api_key',
     'get_fred_api_key',
+    'get_sec_api_key',
+    'get_news_api_key',
     'get_verbose',
     'get_auto_save',
     'FREDDataManager',

@@ -46,6 +46,15 @@ def get_fred_api_key():
     """Get the FRED API key."""
     return get_api_key("FRED_API_KEY")
 
+def get_sec_api_key():
+    """Get the SEC API key."""
+    return get_api_key("SEC_API_KEY")
+
+def get_news_api_key():
+    """Get the NewsAPI key."""
+    # Placeholder for when NewsAPI is implemented
+    return get_api_key("NEWS_API_KEY")
+
 def get_config(key, default=None):
     """
     Get a configuration value from environment variables.
