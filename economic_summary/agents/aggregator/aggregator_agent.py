@@ -5,6 +5,9 @@ import logging
 import openai
 from swarms import Agent
 from economic_summary.utils import get_openai_api_key, get_verbose, get_auto_save
+import os
+import json
+import datetime
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -31,6 +34,12 @@ class AggregatorAgent:
             saved_state_path="aggregator_agent.json",
             return_history=False  # Don't include history in response
         )
+        
+        logger.info(f"Initialized AggregatorAgent with model gpt-4o")
+        
+        # Create agent workspace directory if it doesn't exist
+        self.workspace_dir = os.path.join(os.getcwd(), "agent_workspace", "outputs")
+        os.makedirs(self.workspace_dir, exist_ok=True)
     
     def _get_system_prompt(self):
         """Get the system prompt for the Aggregator Agent."""
@@ -61,6 +70,37 @@ class AggregatorAgent:
         
         End your analysis with "<DONE>" when complete.
         """
+    
+    def _log_output(self, task, output):
+        """
+        Log agent output to the agent workspace.
+        
+        Args:
+            task: The task that was performed
+            output: The agent's output
+        """
+        try:
+            # Create a timestamp for the log file
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create a log file name
+            log_file = os.path.join(self.workspace_dir, f"aggregator_{timestamp}.json")
+            
+            # Prepare the log data
+            log_data = {
+                "agent_name": "aggregator",
+                "timestamp": timestamp,
+                "task": task,
+                "output": output
+            }
+            
+            # Write the log data to the file
+            with open(log_file, 'w') as f:
+                json.dump(log_data, f, indent=2)
+                
+            logger.info(f"Logged aggregator output to {log_file}")
+        except Exception as e:
+            logger.error(f"Error logging aggregator output: {str(e)}")
     
     def run(self, task_or_insights):
         """
@@ -131,7 +171,10 @@ class AggregatorAgent:
             # If analysis is still empty, return a default message
             if not analysis:
                 return "The AggregatorAgent was unable to generate a proper analysis. Please check the logs for details."
-                
+            
+            # Log the output to the workspace
+            self._log_output(prompt, analysis)
+            
             return analysis
         except Exception as e:
             logger.error(f"Error running Aggregator Agent: {str(e)}")

@@ -7,6 +7,8 @@ import json
 from swarms import MixtureOfAgents
 from economic_summary.utils import get_openai_api_key
 from economic_summary.agents.aggregator.aggregator_agent import AggregatorAgent
+import os
+import datetime
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -54,6 +56,10 @@ class EconomicSummarySwarm:
         else:
             self.moa = None
             logger.warning("No domain agents provided, MixtureOfAgents not initialized")
+        
+        # Create agent workspace directory if it doesn't exist
+        self.workspace_dir = os.path.join(os.getcwd(), "agent_workspace", "outputs")
+        os.makedirs(self.workspace_dir, exist_ok=True)
     
     def add_domain_agent(self, domain, agent):
         """
@@ -99,6 +105,9 @@ class EconomicSummarySwarm:
                 # Run the agent with the task
                 domain_task = f"Provide {domain} analysis for: {task}"
                 insight = agent.run(domain_task)
+                
+                # Log the domain agent output to the workspace
+                self._log_agent_output(domain, domain_task, insight)
                 
                 # Store the insight
                 domain_insights[domain] = insight
@@ -185,6 +194,9 @@ class EconomicSummarySwarm:
                 # Run the agent with the refinement task
                 refined = agent.run(refinement_task)
                 
+                # Log the refined domain agent output to the workspace
+                self._log_agent_output(f"{domain}_refined", refinement_task, refined)
+                
                 # Ensure the refined insight isn't too large
                 if isinstance(refined, str) and len(refined) > 2000:
                     refined = refined[:2000] + "...[truncated]"
@@ -202,6 +214,38 @@ class EconomicSummarySwarm:
         
         # Format the refined insights
         return self.format_domain_insights(refined_insights)
+    
+    def _log_agent_output(self, agent_name, task, output):
+        """
+        Log agent output to the agent workspace.
+        
+        Args:
+            agent_name: Name of the agent
+            task: The task that was performed
+            output: The agent's output
+        """
+        try:
+            # Create a timestamp for the log file
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create a log file name
+            log_file = os.path.join(self.workspace_dir, f"{agent_name}_{timestamp}.json")
+            
+            # Prepare the log data
+            log_data = {
+                "agent_name": agent_name,
+                "timestamp": timestamp,
+                "task": task,
+                "output": output
+            }
+            
+            # Write the log data to the file
+            with open(log_file, 'w') as f:
+                json.dump(log_data, f, indent=2)
+                
+            logger.info(f"Logged {agent_name} output to {log_file}")
+        except Exception as e:
+            logger.error(f"Error logging {agent_name} output: {str(e)}")
     
     def run_with_moa(self, task):
         """
@@ -250,6 +294,9 @@ class EconomicSummarySwarm:
             
             result = self.aggregator_agent.run(aggregator_task)
             
+            # Log the aggregator output to the workspace
+            self._log_agent_output("aggregator", aggregator_task, result)
+            
             # Process the result to extract the actual economic summary
             if isinstance(result, dict):
                 if "response" in result:
@@ -289,6 +336,10 @@ class EconomicSummarySwarm:
                 logger.info(f"Running {domain} agent...")
                 domain_task = f"Provide {domain} analysis for: {task}"
                 insight = agent.run(domain_task)
+                
+                # Log the domain agent output to the workspace
+                self._log_agent_output(domain, domain_task, insight)
+                
                 domain_insights[domain] = insight
             
             # Format the insights for the aggregator
@@ -311,6 +362,9 @@ class EconomicSummarySwarm:
             """
             
             summary = self.aggregator_agent.run(aggregator_task)
+            
+            # Log the aggregator output to the workspace
+            self._log_agent_output("aggregator", aggregator_task, summary)
             
             return summary
         except Exception as e:
