@@ -1,2 +1,6 @@
 Error running Economic Summary Swarm: MixtureOfAgents.__init__() got an unexpected keyword argument 'final_agent'
 Error running Economic Summary Swarm: MixtureOfAgents.__init__() got an unexpected keyword argument 'model_name'
+SEC_API_KEY not found and no default provided
+SEC_API_KEY not found. SEC filing features will be disabled.
+NEWS_API_KEY not found and no default provided
+NEWS_API_KEY not found. Financial news features will be disabled.
