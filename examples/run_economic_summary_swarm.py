@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 from economic_summary.agents.macro import MacroAgent
+from economic_summary.agents.equities import EquitiesAgent
 from economic_summary.agents.aggregator import EconomicSummarySwarm
 
 def print_section(title):
@@ -41,6 +42,9 @@ def main():
         print_section("STEP 1: INITIALIZING DOMAIN AGENTS")
         print("Creating MacroAgent for macroeconomic analysis...")
         macro_agent = MacroAgent()
+        
+        print("Creating EquitiesAgent for stock market analysis...")
+        equities_agent = EquitiesAgent()
         
         # Get some sample data from the MacroAgent to show it's working
         print("\nRetrieving sample economic indicators from MacroAgent:")
@@ -73,9 +77,9 @@ def main():
         
         # Create domain agents dictionary
         domain_agents = {
-            'macro': macro_agent
+            'macro': macro_agent,
+            'equities': equities_agent
             # In a full implementation, we would add other domain agents:
-            # 'equities': EquitiesAgent(),
             # 'fixed_income': FixedIncomeAgent(),
             # 'commodities': CommoditiesAgent(),
             # 'political': PoliticalAgent()

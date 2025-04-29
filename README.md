@@ -330,12 +330,21 @@ Once all domain agents are implemented, follow these steps to integrate them int
 
 Before running the system, ensure you have:
 
-1. **API Keys**: Add the following to your `.env` file:
-   ```
+1. **API Keys**: Add the following to your `.env` file in the project root directory (create the file if it doesn't exist):
+   ```dotenv
+   # Required for core LLM functionality
    OPENAI_API_KEY=your_openai_api_key
-   FRED_API_KEY=cb4bfc8fd985c90a14e45b242eff77ce
+   
+   # Required for MacroAgent (uses FRED Data)
+   FRED_API_KEY=your_fred_api_key 
+   
+   # Required for EquitiesAgent (uses NewsAPI)
    NEWS_API_KEY=your_news_api_key
+
+   # Required for EquitiesAgent (uses sec-api.io for filings)
+   SEC_API_KEY=your_sec_api_key
    ```
+   *(Note: The system uses `python-dotenv` to load these keys. Ensure your keys are obtained from the respective service providers.)*
 
 2. **Dependencies**: Install all required packages:
    ```bash

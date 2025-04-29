@@ -15,6 +15,7 @@ from economic_summary.utils import (
 )
 from sec_api import QueryApi # Import sec_api
 from newsapi import NewsApiClient # Import NewsAPI client
+from newsapi.newsapi_exception import NewsAPIException # Import specific exception (Corrected name)
 # Placeholder for data manager imports
 # from .data_managers import YahooFinanceManager, SECDataManager, NewsDataManager 
 
@@ -25,10 +26,12 @@ class EquitiesAgent:
     """
     Agent for analyzing the equities market, including indices, sectors, 
     earnings reports, SEC filings, and financial news.
+
+    Initializes API clients for data fetching (sec-api, NewsAPI) and the internal Swarms Agent (LLM).
     """
     
     def __init__(self):
-        """Initialize the Equities Agent with data managers and LLM."""
+        """Initialize the Equities Agent, setting up API clients and the internal LLM agent."""
         # Placeholder: Initialize data managers when created
         # self.yf_manager = YahooFinanceManager()
         # self.sec_manager = SECDataManager() # We can integrate sec_api here or keep it separate
@@ -332,6 +335,15 @@ class EquitiesAgent:
 
             return news_data
 
+        except NewsAPIException as e: # Corrected exception name
+             # Handle API specific errors (e.g., invalid key, rate limits)
+             logger.error(f"NewsAPI specific error: {str(e)}", exc_info=True)
+             # Return a slightly more informative error message if possible
+             error_detail = str(e)
+             if hasattr(e, 'get_message'): # Method in some versions
+                  error_detail = e.get_message()
+             return {"error": f"Failed to fetch financial news (NewsAPI Error): {error_detail}"}
+
         except Exception as e:
             # Handle potential NewsApiException explicitly if needed
             logger.error(f"Error fetching financial news using NewsAPI: {str(e)}", exc_info=True)
@@ -364,29 +376,48 @@ class EquitiesAgent:
             filings_data = self.get_sec_filings_data() # Fetch 10-Ks for default list
             news_data = self.get_financial_news() # Fetch general financial news
 
+            # --- Prepare data summaries for the prompt --- 
+            # Create a concise summary of market data, excluding bulky historical data
+            market_data_prompt_summary = {}
+            for symbol, data in market_data.items():
+                if symbol == '_summary': # Skip the internal summary key
+                    continue 
+                if isinstance(data, dict) and 'info' in data: # Check if it's valid ticker data
+                     market_data_prompt_summary[symbol] = {
+                         'info': data.get('info'),
+                         'last_close': data.get('last_close'),
+                         'period_change_pct': data.get('period_change_pct')
+                     }
+                else:
+                     # Include errors or other non-standard entries
+                     market_data_prompt_summary[symbol] = data 
+
             # Extract summaries for the prompt to avoid excessive length
-            market_summary = {k: v for k, v in market_data.items() if k == '_summary' or isinstance(v.get('historical_data'), dict) == False}
+            # market_summary = {k: v for k, v in market_data.items() if k == '_summary' or isinstance(v.get('historical_data'), dict) == False}
             sector_ranking = market_data.get('_summary',{}).get('sector_performance_ranking', 'Not available')
+            earnings_summary = earnings_data # Keep as is for now
+            filings_summary = filings_data # Keep as is for now
+            news_summary = news_data.get('articles', 'Not available') # Extract just the articles list or status
 
             # 2. Format Data for LLM 
             # TODO: Improve formatting, possibly summarize historical data before sending
             prompt = f"""
             Please analyze the following equities market data and provide insights:
             
-            Market Index & Sector ETF Overview (Period: 1mo):
-            {market_summary}
+            Market Index & Sector ETF Overview (1mo Period):
+            {market_data_prompt_summary}
             
             Sector Performance Ranking (1mo):
             {sector_ranking}
 
             Upcoming Earnings (next 7 days for sample tickers):
-            {earnings_data}
+            {earnings_summary}
             
             Recent SEC Filings Insights (Latest 10-K):
-            {filings_data}
+            {filings_summary}
             
-            Relevant Financial News:
-            {news_data}
+            Relevant Financial News Summaries:
+            {news_summary}
             
             Based on this data, provide a comprehensive analysis of the current equities market situation. 
             Focus on:
