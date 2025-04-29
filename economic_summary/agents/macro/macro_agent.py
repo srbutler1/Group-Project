@@ -189,7 +189,7 @@ class MacroAgent:
         try:
             # Get recent reports from key sources
             sources = ['fed', 'bea', 'bls']  # Federal Reserve, Bureau of Economic Analysis, Bureau of Labor Statistics
-            all_reports = self.get_recent_economic_reports(sources, limit_per_source=10)
+            all_reports = self.get_recent_economic_reports(sources, limit_per_source=5)
             
             # Flatten the reports list
             flat_reports = []
@@ -213,24 +213,22 @@ class MacroAgent:
                 
                 logger.info(f"Analyzing report: {report_name} from {report_source}")
                 
-                # Get report content
+                # Get report content - limit to a small excerpt
                 if report_link:
-                    content = self.report_parser.get_report_content(report_link)
+                    # Get only a very brief excerpt of the content (first 500 chars max)
+                    content = self.report_parser.get_report_content(report_link, max_content_length=500)
                     
-                    # Analyze the content with the LLM
+                    # Analyze the content with the LLM - request a one-sentence summary
                     analysis_prompt = f"""
-                    Please analyze the following economic report and provide a concise summary of its key findings and implications:
+                    Please provide a ONE SENTENCE summary of this economic report:
                     
                     Report: {report_name}
                     Source: {report_source.upper()}
                     
-                    Content:
-                    {content[:3000]}  # Limit content to 3000 chars to avoid token limits
+                    Content Excerpt:
+                    {content}
                     
-                    Provide a brief summary (2-3 paragraphs) that highlights:
-                    1. The main economic indicators or data discussed
-                    2. Key trends or changes identified
-                    3. Potential implications for monetary policy and the broader economy
+                    Your response should be a single sentence (maximum 50 words) that captures the most important economic insight from this report.
                     """
                     
                     analysis = self.agent.run(analysis_prompt)
@@ -238,6 +236,11 @@ class MacroAgent:
                     # Extract the analysis from the response
                     if isinstance(analysis, dict) and "response" in analysis:
                         analysis = analysis["response"]
+                    
+                    # Ensure the analysis is truly concise
+                    if isinstance(analysis, str) and len(analysis) > 100:
+                        # Truncate if it's too long
+                        analysis = analysis[:100] + "..."
                     
                     report_analyses.append({
                         'name': report_name,

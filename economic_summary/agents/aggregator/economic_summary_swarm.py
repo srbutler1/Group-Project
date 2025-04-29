@@ -109,6 +109,100 @@ class EconomicSummarySwarm:
         
         return domain_insights
     
+    def format_domain_insights(self, domain_insights):
+        """
+        Format domain insights for the aggregator.
+        
+        Args:
+            domain_insights: Dictionary mapping domain names to their insights
+            
+        Returns:
+            str: Formatted insights
+        """
+        formatted = ""
+        
+        for domain, insight in domain_insights.items():
+            formatted += f"\n\n=== {domain.upper()} INSIGHTS ===\n\n"
+            
+            # Limit the size of each insight to prevent context window issues
+            if isinstance(insight, str) and len(insight) > 2000:
+                # Extract the first and last parts of the insight
+                first_part = insight[:1000]
+                last_part = insight[-1000:]
+                formatted += f"{first_part}\n\n[...content truncated...]\n\n{last_part}"
+            else:
+                formatted += insight
+                
+            formatted += "\n\n" + "-" * 40 + "\n"
+        
+        return formatted
+    
+    def refine_domain_insights(self, domain_insights, task):
+        """
+        Refine domain insights with awareness of other domains.
+        
+        Args:
+            domain_insights: Dictionary mapping domain names to their insights
+            task: The original task
+            
+        Returns:
+            str: Formatted refined insights
+        """
+        refined_insights = {}
+        
+        # Create a condensed version of all insights for context
+        condensed_insights = ""
+        for domain, insight in domain_insights.items():
+            condensed_insights += f"\n\n=== {domain.upper()} KEY POINTS ===\n\n"
+            
+            # Extract just a brief summary from each insight
+            if isinstance(insight, str):
+                if len(insight) > 500:
+                    # Take just the first 500 characters as a summary
+                    condensed_insights += insight[:500] + "..."
+                else:
+                    condensed_insights += insight
+            
+            condensed_insights += "\n\n"
+        
+        for domain, agent in self.domain_agents.items():
+            logger.info(f"Refining insights from {domain} agent with cross-domain awareness...")
+            try:
+                # Create a refinement task with condensed insights from other domains
+                refinement_task = f"""
+                {task}
+                
+                You previously provided this {domain} analysis. Focus on refining it with awareness of other domains.
+                
+                Here are condensed insights from all economic domains:
+                
+                {condensed_insights}
+                
+                Provide a BRIEF refined {domain} analysis (maximum 500 words) that considers these other insights.
+                Focus on how your domain interacts with or is affected by the others.
+                """
+                
+                # Run the agent with the refinement task
+                refined = agent.run(refinement_task)
+                
+                # Ensure the refined insight isn't too large
+                if isinstance(refined, str) and len(refined) > 2000:
+                    refined = refined[:2000] + "...[truncated]"
+                
+                # Store the refined insight
+                refined_insights[domain] = refined
+                logger.info(f"Successfully refined insights from {domain} agent")
+            except Exception as e:
+                logger.error(f"Error refining insights from {domain} agent: {str(e)}")
+                # Use a condensed version of the original insights as fallback
+                if isinstance(domain_insights[domain], str) and len(domain_insights[domain]) > 1000:
+                    refined_insights[domain] = domain_insights[domain][:1000] + "...[truncated]"
+                else:
+                    refined_insights[domain] = domain_insights[domain]
+        
+        # Format the refined insights
+        return self.format_domain_insights(refined_insights)
+    
     def run_with_moa(self, task):
         """
         Run the Economic Summary Swarm using MixtureOfAgents.
@@ -142,14 +236,16 @@ class EconomicSummarySwarm:
             
             logger.info("Final Layer: Aggregator agent combining insights...")
             # Use the aggregator agent to synthesize the insights
+            # Create a concise version of the task and insights to avoid context window issues
             aggregator_task = f"""
             {task}
             
-            Here are the domain-specific insights to synthesize:
+            Here are the key domain-specific insights to synthesize (condensed for brevity):
             
             {refined_insights}
             
-            Provide a comprehensive economic summary that integrates these insights.
+            Provide a concise, comprehensive economic summary (maximum 1000 words) that integrates these insights.
+            Focus on the most important connections between domains and key economic trends.
             """
             
             result = self.aggregator_agent.run(aggregator_task)
@@ -173,73 +269,6 @@ class EconomicSummarySwarm:
         except Exception as e:
             logger.error(f"Error running Economic Summary Swarm: {str(e)}")
             return f"Error generating economic summary: {str(e)}"
-    
-    def format_domain_insights(self, domain_insights):
-        """
-        Format domain insights for the aggregator.
-        
-        Args:
-            domain_insights: Dictionary mapping domain names to their insights
-            
-        Returns:
-            str: Formatted insights
-        """
-        formatted = ""
-        
-        for domain, insight in domain_insights.items():
-            formatted += f"\n\n=== {domain.upper()} INSIGHTS ===\n\n"
-            formatted += insight
-            formatted += "\n\n" + "-" * 40 + "\n"
-        
-        return formatted
-    
-    def refine_domain_insights(self, domain_insights, task):
-        """
-        Refine domain insights with awareness of other domains.
-        
-        Args:
-            domain_insights: Dictionary mapping domain names to their insights
-            task: The original task
-            
-        Returns:
-            str: Formatted refined insights
-        """
-        refined_insights = {}
-        
-        # Format all insights for context
-        all_insights = self.format_domain_insights(domain_insights)
-        
-        for domain, agent in self.domain_agents.items():
-            logger.info(f"Refining insights from {domain} agent with cross-domain awareness...")
-            try:
-                # Create a refinement task with other domains' insights
-                refinement_task = f"""
-                {task}
-                
-                You previously provided this {domain} analysis:
-                
-                {domain_insights[domain]}
-                
-                Here are insights from other economic domains:
-                
-                {all_insights}
-                
-                Now, refine your {domain} analysis considering these other insights.
-                Focus on how your domain interacts with or is affected by the others.
-                """
-                
-                # Run the agent with the refinement task
-                refined = agent.run(refinement_task)
-                
-                # Store the refined insight
-                refined_insights[domain] = refined
-                logger.info(f"Successfully refined insights from {domain} agent")
-            except Exception as e:
-                logger.error(f"Error refining insights from {domain} agent: {str(e)}")
-                refined_insights[domain] = domain_insights[domain]  # Fall back to original insights
-        
-        # Format the refined insights
-        return self.format_domain_insights(refined_insights)
     
     def run_sequential(self, task):
         """

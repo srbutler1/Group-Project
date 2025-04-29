@@ -24,16 +24,16 @@ class ReportParser:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
         })
     
-    def get_report_content(self, url, max_content_length=10000):
+    def get_report_content(self, url, max_content_length=500):
         """
         Get the content of a report from a URL.
         
         Args:
             url: URL of the report
-            max_content_length: Maximum content length to return
+            max_content_length: Maximum content length to return (default: 500 chars)
             
         Returns:
-            str: Report content
+            str: Report content excerpt
         """
         try:
             if not url:
@@ -48,13 +48,13 @@ class ReportParser:
             logger.error(f"Error getting report content from {url}: {str(e)}")
             return f"Error retrieving content: {str(e)}"
     
-    def _parse_html(self, url, max_content_length=10000):
+    def _parse_html(self, url, max_content_length=500):
         """
         Parse HTML content from a URL.
         
         Args:
             url: URL of the HTML page
-            max_content_length: Maximum content length to return
+            max_content_length: Maximum content length to return (default: 500 chars)
             
         Returns:
             str: Extracted text content
@@ -77,7 +77,7 @@ class ReportParser:
             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
             text = '\n'.join(chunk for chunk in chunks if chunk)
             
-            # Truncate if needed
+            # Extract only the beginning of the content
             if len(text) > max_content_length:
                 text = text[:max_content_length] + "..."
                 
@@ -86,13 +86,13 @@ class ReportParser:
             logger.error(f"Error parsing HTML from {url}: {str(e)}")
             return f"Error parsing HTML: {str(e)}"
     
-    def _parse_pdf(self, url, max_content_length=10000):
+    def _parse_pdf(self, url, max_content_length=500):
         """
         Parse PDF content from a URL.
         
         Args:
             url: URL of the PDF
-            max_content_length: Maximum content length to return
+            max_content_length: Maximum content length to return (default: 500 chars)
             
         Returns:
             str: Extracted text content
@@ -105,11 +105,11 @@ class ReportParser:
             pdf_file = io.BytesIO(response.content)
             pdf_reader = PyPDF2.PdfReader(pdf_file)
             
-            # Extract text from each page
+            # Extract text from only the first page
             text = ""
-            for page_num in range(min(5, len(pdf_reader.pages))):  # Limit to first 5 pages
-                page = pdf_reader.pages[page_num]
-                text += page.extract_text() + "\n\n"
+            if len(pdf_reader.pages) > 0:
+                page = pdf_reader.pages[0]
+                text = page.extract_text()
             
             # Truncate if needed
             if len(text) > max_content_length:
