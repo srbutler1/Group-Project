@@ -12,3 +12,4 @@ beautifulsoup4>=4.12.2
 PyPDF2>=3.0.0
 sec-api>=1.0.0
 pytz
+scikit-learn

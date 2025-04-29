@@ -19,10 +19,7 @@ class FixedIncomeAgent:
         # Download yield data
         end = datetime.today()
         start = end - timedelta(days=self.history_days)
-        print("before line 22")
-        df = yf.download(list(self.tickers.values()), start=start, end=end)["Adj Close"]
-        df = yf.download(list(self.tickers.values()), start=start, end=end)["Adj Close"]
-        print("after line 22")
+        df = yf.download(list(self.tickers.values()), start=start, end=end)["Close"]
         df.columns = self.tickers.keys()
         self.data = df.dropna()
         self.latest_yields = self.data.iloc[-1].to_dict()
