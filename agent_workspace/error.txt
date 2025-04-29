@@ -4,3 +4,32 @@ SEC_API_KEY not found and no default provided
 SEC_API_KEY not found. SEC filing features will be disabled.
 NEWS_API_KEY not found and no default provided
 NEWS_API_KEY not found. Financial news features will be disabled.
+SEC_API_KEY not found and no default provided
+SEC_API_KEY not found. SEC filing features will be disabled.
+NEWS_API_KEY not found and no default provided
+NEWS_API_KEY not found. Financial news features will be disabled.
+Error retrieving FRED series GDP: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series UNRATE: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series CPIAUCSL: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series T10Y2Y: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series UNRATE: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series INDPRO: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series GDP: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series GDPC1: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series UNRATE: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series CPIAUCSL: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series FEDFUNDS: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series T10Y2Y: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series PAYEMS: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series INDPRO: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series HOUST: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series UMCSENT: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series T10Y2Y: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series UNRATE: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving FRED series INDPRO: Bad Request.  The value for variable api_key is not registered.  Read https://fred.stlouisfed.org/docs/api/api_key.html for more information.
+Error retrieving releases for source 1: 400 Client Error: Bad Request for url: https://api.stlouisfed.org/fred/source/releases?source_id=1&api_key=cb4bfc8fd985c90a14e45b242eff7hoe&file_type=json&realtime_start=2025-04-29&realtime_end=2025-04-29&limit=5&order_by=release_id&sort_order=desc
+Error retrieving releases for source 18: 400 Client Error: Bad Request for url: https://api.stlouisfed.org/fred/source/releases?source_id=18&api_key=cb4bfc8fd985c90a14e45b242eff7hoe&file_type=json&realtime_start=2025-04-29&realtime_end=2025-04-29&limit=5&order_by=release_id&sort_order=desc
+Error retrieving releases for source 22: 400 Client Error: Bad Request for url: https://api.stlouisfed.org/fred/source/releases?source_id=22&api_key=cb4bfc8fd985c90a14e45b242eff7hoe&file_type=json&realtime_start=2025-04-29&realtime_end=2025-04-29&limit=5&order_by=release_id&sort_order=desc
+Error retrieving releases for source 1: 400 Client Error: Bad Request for url: https://api.stlouisfed.org/fred/source/releases?source_id=1&api_key=cb4bfc8fd985c90a14e45b242eff7hoe&file_type=json&realtime_start=2025-04-29&realtime_end=2025-04-29&limit=10&order_by=release_id&sort_order=desc
+Error retrieving releases for source 18: 400 Client Error: Bad Request for url: https://api.stlouisfed.org/fred/source/releases?source_id=18&api_key=cb4bfc8fd985c90a14e45b242eff7hoe&file_type=json&realtime_start=2025-04-29&realtime_end=2025-04-29&limit=10&order_by=release_id&sort_order=desc
+Error retrieving releases for source 22: 400 Client Error: Bad Request for url: https://api.stlouisfed.org/fred/source/releases?source_id=22&api_key=cb4bfc8fd985c90a14e45b242eff7hoe&file_type=json&realtime_start=2025-04-29&realtime_end=2025-04-29&limit=10&order_by=release_id&sort_order=desc

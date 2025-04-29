@@ -1,11 +1,11 @@
 """
-Economic Summary Swarm for orchestrating domain agents.
+Economic Summary Swarm implementation using Mixture of Agents (MoA) architecture.
 """
 import logging
-from typing import Dict, Any, List, Optional
 import openai
-from swarms import Agent, MixtureOfAgents
-from economic_summary.utils import get_openai_api_key, get_verbose, get_auto_save
+import json
+from swarms import MixtureOfAgents
+from economic_summary.utils import get_openai_api_key
 from economic_summary.agents.aggregator.aggregator_agent import AggregatorAgent
 
 # Configure logging
@@ -13,12 +13,10 @@ logger = logging.getLogger(__name__)
 
 class EconomicSummarySwarm:
     """
-    Swarm for orchestrating domain agents to generate a comprehensive economic summary.
-    Implements the Mixture of Agents (MoA) architecture with a workflow that follows:
-    - Layer 1: Parallel Agent Execution (all domain agents collect data)
-    - Layer 2: Sequential Processing (identify interdependencies)
-    - Layer 3: Parallel Agent Execution (refined analysis with context)
-    - Final Aggregator Agent (combines all insights)
+    Economic Summary Swarm using Mixture of Agents (MoA) architecture.
+    
+    This class orchestrates multiple domain-specific agents to generate
+    a comprehensive economic summary.
     """
     
     def __init__(self, domain_agents=None):
@@ -57,19 +55,21 @@ class EconomicSummarySwarm:
             self.moa = None
             logger.warning("No domain agents provided, MixtureOfAgents not initialized")
     
-    def add_domain_agent(self, domain, agent_instance):
+    def add_domain_agent(self, domain, agent):
         """
         Add a domain agent to the swarm.
         
         Args:
             domain: Domain name
-            agent_instance: Agent instance
+            agent: Agent instance
         """
-        self.domain_agents[domain] = agent_instance
-        if hasattr(agent_instance, 'agent'):
-            self.swarm_agents.append(agent_instance.agent)
+        self.domain_agents[domain] = agent
+        
+        # Add to swarm_agents if it has an agent attribute
+        if hasattr(agent, 'agent'):
+            self.swarm_agents.append(agent.agent)
             
-            # Recreate the MixtureOfAgents with the correct parameters for Swarms 7.7.2
+            # Reinitialize MixtureOfAgents with updated agents
             self.moa = MixtureOfAgents(
                 agents=self.swarm_agents,
                 aggregator_agent=self.aggregator_agent.agent,
@@ -80,6 +80,34 @@ class EconomicSummarySwarm:
             )
         else:
             logger.warning(f"Domain agent {domain} does not have an 'agent' attribute")
+    
+    def collect_domain_insights(self, task):
+        """
+        Collect insights from each domain agent explicitly.
+        
+        Args:
+            task: The task to perform
+            
+        Returns:
+            dict: Dictionary mapping domain names to their insights
+        """
+        domain_insights = {}
+        
+        for domain, agent in self.domain_agents.items():
+            logger.info(f"Collecting insights from {domain} agent...")
+            try:
+                # Run the agent with the task
+                domain_task = f"Provide {domain} analysis for: {task}"
+                insight = agent.run(domain_task)
+                
+                # Store the insight
+                domain_insights[domain] = insight
+                logger.info(f"Successfully collected insights from {domain} agent")
+            except Exception as e:
+                logger.error(f"Error collecting insights from {domain} agent: {str(e)}")
+                domain_insights[domain] = f"Error: {str(e)}"
+        
+        return domain_insights
     
     def run_with_moa(self, task):
         """
@@ -101,17 +129,30 @@ class EconomicSummarySwarm:
             
         try:
             logger.info("Layer 1: Starting parallel execution of domain agents...")
-            # The MixtureOfAgents handles the parallel execution internally
+            # Explicitly collect insights from each domain agent
+            domain_insights = self.collect_domain_insights(task)
             
             logger.info("Layer 2: Sequential processing to identify interdependencies...")
-            # This happens automatically within the MoA architecture
+            # Format the collected insights for the aggregator
+            formatted_insights = self.format_domain_insights(domain_insights)
             
             logger.info("Layer 3: Refined parallel analysis with context...")
-            # This is also handled by the MoA architecture
+            # Run domain agents again with awareness of other domains' insights
+            refined_insights = self.refine_domain_insights(domain_insights, task)
             
             logger.info("Final Layer: Aggregator agent combining insights...")
-            # Run the MixtureOfAgents which orchestrates all these layers
-            result = self.moa.run(task=task)
+            # Use the aggregator agent to synthesize the insights
+            aggregator_task = f"""
+            {task}
+            
+            Here are the domain-specific insights to synthesize:
+            
+            {refined_insights}
+            
+            Provide a comprehensive economic summary that integrates these insights.
+            """
+            
+            result = self.aggregator_agent.run(aggregator_task)
             
             # Process the result to extract the actual economic summary
             if isinstance(result, dict):
@@ -133,35 +174,136 @@ class EconomicSummarySwarm:
             logger.error(f"Error running Economic Summary Swarm: {str(e)}")
             return f"Error generating economic summary: {str(e)}"
     
-    def run_sequential(self, task=None):
+    def format_domain_insights(self, domain_insights):
         """
-        Run the Economic Summary Swarm sequentially (without MixtureOfAgents).
-        This is a simpler alternative to the full MoA architecture.
+        Format domain insights for the aggregator.
         
         Args:
-            task: The task to perform (optional)
+            domain_insights: Dictionary mapping domain names to their insights
+            
+        Returns:
+            str: Formatted insights
+        """
+        formatted = ""
+        
+        for domain, insight in domain_insights.items():
+            formatted += f"\n\n=== {domain.upper()} INSIGHTS ===\n\n"
+            formatted += insight
+            formatted += "\n\n" + "-" * 40 + "\n"
+        
+        return formatted
+    
+    def refine_domain_insights(self, domain_insights, task):
+        """
+        Refine domain insights with awareness of other domains.
+        
+        Args:
+            domain_insights: Dictionary mapping domain names to their insights
+            task: The original task
+            
+        Returns:
+            str: Formatted refined insights
+        """
+        refined_insights = {}
+        
+        # Format all insights for context
+        all_insights = self.format_domain_insights(domain_insights)
+        
+        for domain, agent in self.domain_agents.items():
+            logger.info(f"Refining insights from {domain} agent with cross-domain awareness...")
+            try:
+                # Create a refinement task with other domains' insights
+                refinement_task = f"""
+                {task}
+                
+                You previously provided this {domain} analysis:
+                
+                {domain_insights[domain]}
+                
+                Here are insights from other economic domains:
+                
+                {all_insights}
+                
+                Now, refine your {domain} analysis considering these other insights.
+                Focus on how your domain interacts with or is affected by the others.
+                """
+                
+                # Run the agent with the refinement task
+                refined = agent.run(refinement_task)
+                
+                # Store the refined insight
+                refined_insights[domain] = refined
+                logger.info(f"Successfully refined insights from {domain} agent")
+            except Exception as e:
+                logger.error(f"Error refining insights from {domain} agent: {str(e)}")
+                refined_insights[domain] = domain_insights[domain]  # Fall back to original insights
+        
+        # Format the refined insights
+        return self.format_domain_insights(refined_insights)
+    
+    def run_sequential(self, task):
+        """
+        Run the Economic Summary Swarm sequentially.
+        This is a simpler alternative to the MoA approach.
+        
+        Args:
+            task: The task to perform
             
         Returns:
             str: Economic summary
         """
         try:
-            # Run each domain agent
-            domain_summaries = {}
-            for domain, agent_instance in self.domain_agents.items():
+            # Collect insights from each domain agent
+            domain_insights = {}
+            
+            for domain, agent in self.domain_agents.items():
                 logger.info(f"Running {domain} agent...")
-                try:
-                    if hasattr(agent_instance, 'run'):
-                        summary = agent_instance.run(task)
-                        domain_summaries[domain] = summary
-                    else:
-                        logger.warning(f"Domain agent {domain} does not have a 'run' method")
-                except Exception as e:
-                    logger.error(f"Error running {domain} agent: {str(e)}")
-                    domain_summaries[domain] = f"Error: {str(e)}"
+                domain_task = f"Provide {domain} analysis for: {task}"
+                insight = agent.run(domain_task)
+                domain_insights[domain] = insight
+            
+            # Format the insights for the aggregator
+            formatted_insights = ""
+            for domain, insight in domain_insights.items():
+                formatted_insights += f"\n\n=== {domain.upper()} INSIGHTS ===\n\n"
+                formatted_insights += insight
+                formatted_insights += "\n\n" + "-" * 40 + "\n"
             
             # Run the aggregator agent
             logger.info("Running aggregator agent...")
-            return self.aggregator_agent.run(domain_summaries)
+            aggregator_task = f"""
+            {task}
+            
+            Here are the domain-specific insights to synthesize:
+            
+            {formatted_insights}
+            
+            Provide a comprehensive economic summary that integrates these insights.
+            """
+            
+            summary = self.aggregator_agent.run(aggregator_task)
+            
+            return summary
         except Exception as e:
-            logger.error(f"Error running Economic Summary Swarm sequentially: {str(e)}")
+            logger.error(f"Error running sequential Economic Summary Swarm: {str(e)}")
             return f"Error generating economic summary: {str(e)}"
+    
+    def run(self, task=None):
+        """
+        Run the Economic Summary Swarm.
+        This is a convenience method that uses the MoA approach if available,
+        otherwise falls back to sequential execution.
+        
+        Args:
+            task: The task to perform (default: generate a general economic summary)
+            
+        Returns:
+            str: Economic summary
+        """
+        if not task:
+            task = "Generate a comprehensive economic summary covering all major domains."
+            
+        if self.moa:
+            return self.run_with_moa(task)
+        else:
+            return self.run_sequential(task)
