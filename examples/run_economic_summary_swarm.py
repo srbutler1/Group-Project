@@ -23,6 +23,7 @@ load_dotenv()
 
 from economic_summary.agents.macro import MacroAgent
 from economic_summary.agents.equities import EquitiesAgent
+from economic_summary.agents.fixed_income import FixedIncomeAgent
 from economic_summary.agents.aggregator import EconomicSummarySwarm
 
 def print_section(title):
@@ -45,6 +46,9 @@ def main():
         
         print("Creating EquitiesAgent for stock market analysis...")
         equities_agent = EquitiesAgent()
+        
+        print("Creating FixedIncomeAgent for bond market analysis...")
+        fixed_income_agent = FixedIncomeAgent()
         
         # Get some sample data from the MacroAgent to show it's working
         print("\nRetrieving sample economic indicators from MacroAgent:")
@@ -75,12 +79,30 @@ def main():
         else:
             print(macro_insights)
         
+        # Run the FixedIncomeAgent to get fixed income insights
+        print("\nGenerating fixed income insights...")
+        fixed_income_task = "Analyze current bond market trends and their implications for the economy"
+        fixed_income_insights = fixed_income_agent.run(fixed_income_task)
+        
+        print("\nFixed Income Insights Summary:")
+        print("-" * 40)
+        # Print the first 3 lines and last 3 lines of the insights to keep output manageable
+        fixed_income_lines = fixed_income_insights.split('\n')
+        if len(fixed_income_lines) > 6:
+            for line in fixed_income_lines[:3]:
+                print(line)
+            print("...")
+            for line in fixed_income_lines[-3:]:
+                print(line)
+        else:
+            print(fixed_income_insights)
+        
         # Create domain agents dictionary
         domain_agents = {
             'macro': macro_agent,
-            'equities': equities_agent
+            'equities': equities_agent,
+            'fixed_income': fixed_income_agent
             # In a full implementation, we would add other domain agents:
-            # 'fixed_income': FixedIncomeAgent(),
             # 'commodities': CommoditiesAgent(),
             # 'political': PoliticalAgent()
         }
@@ -100,7 +122,7 @@ def main():
         print("\nStarting MoA execution...\n")
         
         # Define the task
-        task = "Generate a comprehensive economic summary focusing on inflation trends and monetary policy"
+        task = "Generate a comprehensive economic summary focusing on inflation trends, monetary policy, and bond market conditions"
         print(f"Task: {task}\n")
         
         # Run the swarm with MoA architecture
