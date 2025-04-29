@@ -1,0 +1,55 @@
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^TYX', '^TNX', '^FVX', '^IRX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^TYX', '^IRX', '^TNX', '^FVX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker 'SHY' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker 'TLT' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker 'IEF' reason: Expecting value: line 1 column 1 (char 0)
+
+3 Failed downloads:
+['SHY', 'TLT', 'IEF']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^IRX', '^FVX', '^TNX', '^TYX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^TYX', '^TNX', '^IRX', '^FVX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^TNX', '^FVX', '^IRX', '^TYX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^IRX', '^TNX', '^TYX', '^FVX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
+Failed to get ticker '^TYX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^IRX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^FVX' reason: Expecting value: line 1 column 1 (char 0)
+Failed to get ticker '^TNX' reason: Expecting value: line 1 column 1 (char 0)
+
+4 Failed downloads:
+['^TYX', '^IRX', '^FVX', '^TNX']: YFTzMissingError('$%ticker%: possibly delisted; no timezone found')
