@@ -7,6 +7,13 @@ __pycache__
 *.pyd
 venv
 .venv/
+.ds_store
+.DS_Store
+agent_workspace/error.txt
+agent_workspace/outputs
+agent_workspace/prompts
+
+
 
 
 

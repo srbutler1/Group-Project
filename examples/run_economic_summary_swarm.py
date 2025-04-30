@@ -24,6 +24,8 @@ load_dotenv()
 from economic_summary.agents.macro import MacroAgent
 from economic_summary.agents.equities import EquitiesAgent
 from economic_summary.agents.fixed_income import FixedIncomeAgent
+from economic_summary.agents.political import PoliticalNewsAgent
+from economic_summary.agents.commodities import CommoditiesAgent
 from economic_summary.agents.aggregator import EconomicSummarySwarm
 
 def print_section(title):
@@ -49,6 +51,12 @@ def main():
         
         print("Creating FixedIncomeAgent for bond market analysis...")
         fixed_income_agent = FixedIncomeAgent()
+        
+        print("Creating PoliticalNewsAgent for political news analysis...")
+        political_agent = PoliticalNewsAgent()
+        
+        print("Creating CommoditiesAgent for commodities market analysis...")
+        commodities_agent = CommoditiesAgent()
         
         # Get some sample data from the MacroAgent to show it's working
         print("\nRetrieving sample economic indicators from MacroAgent:")
@@ -97,14 +105,49 @@ def main():
         else:
             print(fixed_income_insights)
         
+        # Run the PoliticalNewsAgent to get political insights
+        print("\nGenerating political news insights...")
+        political_task = "Analyze recent political developments and their economic implications"
+        political_insights = political_agent.run(political_task)
+        
+        print("\nPolitical News Insights Summary:")
+        print("-" * 40)
+        # Print the first 3 lines and last 3 lines of the insights to keep output manageable
+        political_lines = political_insights.split('\n')
+        if len(political_lines) > 6:
+            for line in political_lines[:3]:
+                print(line)
+            print("...")
+            for line in political_lines[-3:]:
+                print(line)
+        else:
+            print(political_insights)
+            
+        # Run the CommoditiesAgent to get commodities insights
+        print("\nGenerating commodities market insights...")
+        commodities_task = "Analyze current commodities market trends and their implications for the economy"
+        commodities_insights = commodities_agent.run(commodities_task)
+        
+        print("\nCommodities Market Insights Summary:")
+        print("-" * 40)
+        # Print the first 3 lines and last 3 lines of the insights to keep output manageable
+        commodities_lines = commodities_insights.split('\n')
+        if len(commodities_lines) > 6:
+            for line in commodities_lines[:3]:
+                print(line)
+            print("...")
+            for line in commodities_lines[-3:]:
+                print(line)
+        else:
+            print(commodities_insights)
+        
         # Create domain agents dictionary
         domain_agents = {
             'macro': macro_agent,
             'equities': equities_agent,
-            'fixed_income': fixed_income_agent
-            # In a full implementation, we would add other domain agents:
-            # 'commodities': CommoditiesAgent(),
-            # 'political': PoliticalAgent()
+            'fixed_income': fixed_income_agent,
+            'political': political_agent,
+            'commodities': commodities_agent
         }
         
         # Step 2: Initialize the Economic Summary Swarm
@@ -122,7 +165,7 @@ def main():
         print("\nStarting MoA execution...\n")
         
         # Define the task
-        task = "Generate a comprehensive economic summary focusing on inflation trends, monetary policy, and bond market conditions"
+        task = "Generate a comprehensive economic summary focusing on inflation trends, monetary policy, bond market conditions, commodities markets, and political factors affecting the economy"
         print(f"Task: {task}\n")
         
         # Run the swarm with MoA architecture
