@@ -88,12 +88,41 @@ economic_summary/
 - Retrieves and analyzes key economic indicators from FRED
 - Assesses recession risk based on yield curve and other factors
 - Monitors recent economic reports from major sources
-- **NEW: Analyzes important economic reports** - Automatically identifies and analyzes the most important recent economic reports that may impact the economy
+- Analyzes important economic reports - Automatically identifies and analyzes the most important recent economic reports that may impact the economy
+
+### Equities Analysis
+- Tracks major stock indices (S&P 500, NASDAQ, Dow Jones) performance
+- Analyzes sector performance and rotation trends
+- Evaluates market sentiment and volatility indicators
+- Identifies significant earnings reports and their market impact
+- Provides insights on market valuation metrics (P/E ratios, etc.)
+
+### Fixed Income Analysis
+- Monitors Treasury yield curves and detects inversions
+- Tracks corporate bond (LQD), high-yield (JNK), and municipal bond (MUB) performance
+- Analyzes credit spreads and default risk indicators
+- Evaluates the impact of Federal Reserve policy on bond markets
+- Provides insights on fixed income market trends and outlook
+
+### Commodities Analysis
+- Tracks price movements in energy commodities (oil, natural gas)
+- Monitors metals markets (gold, silver, copper)
+- Analyzes agricultural commodities (corn, soybeans, wheat)
+- Evaluates supply/demand dynamics and inventory levels
+- Identifies geopolitical factors affecting commodity prices
+
+### Political News Analysis
+- Monitors policy changes and regulatory developments
+- Analyzes political events with economic implications
+- Tracks legislative developments affecting markets
+- Evaluates geopolitical risks and international relations
+- Identifies potential policy shifts that could impact economic sectors
 
 ### Aggregation and Synthesis
 - Combines insights from all domain agents
 - Identifies connections between different economic domains
 - Prioritizes significant trends and provides a balanced outlook
+- Generates comprehensive economic summaries with cross-domain analysis
 
 ## Architecture Implementation
 
@@ -599,9 +628,23 @@ def create_economic_swarm(domain_agents: List[Agent], aggregator_agent: Agent) -
 - [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)
 - [SEC-API Documentation](https://sec-api.io/docs)
 
+## Contributors
+
+The Economic Summary Swarm Agent System was developed by the following contributors:
+
+- **Sam (srbutler1)** - Aggregator Agent and Macro-FRED Agent
+- **Jake (Ransom-Alpha)** - Commodities Agent
+- **Thomas (tjfeely)** - Fixed Income Agent
+- **Himanshu (himmannshu)** - Equities Agent
+- **Zach (ZachC2003)** - Political News Agent
+
 ## License
 
-[Specify your license here]
+MIT License
+
+Copyright (c) 2025 Economic Summary Swarm Contributors
+
+See the [LICENSE](./LICENSE) file for details.
 
 ## Acknowledgments
 
